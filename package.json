@@ -1,12 +1,19 @@
 {
   "name": "push-activity-solution-tool",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "CLI tool that assists in adding solution for activity from instructor repo to student repo",
+  "main": "bin/index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bin": {
+    "push-activity-solution": "./bin/index.js"
+  },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "inquirer": "^9.2.7"
+  }
 }
