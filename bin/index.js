@@ -45,45 +45,30 @@ inquirer
 
     const activityName = activityDirs.filter(dir => dir[0] === prefix[0] && dir[1] === prefix[1])[0];
 
-    log(activityName);
+    try {
+
+      log(`Copying unit ${unitName} activity ${activityName} solution directory..`);
+
+      execSync(`cp -r ${instructorRepo}/01-Class-Content/${unitName}/01-Activities/${activityName}/Solved ${studentRepo}/${unitName}/01-Activities/${activityName}`);
+
+      log(`${activityName} solution copied..`);
+      log("git adding all..");
+
+      execSync(`cd ${studentRepo} && git add -A`);
+
+      log("git commiting with message..");
+
+      execSync(`cd ${studentRepo} && git commit -m "adds solution for unit ${unitName} activity ${activityName}"`);
+
+      log("git pushing")
+
+      execSync(`cd ${studentRepo} && git push ${remoteBranch}`);
+
+      log("Completed.");
+
+    } catch(err) {
+      console.error(err);
+    }
   })
-
-    
-    // try {
-
-      
-    //   execSync(`cp -r ${instructorRepo}/01-Class-Content/${unitName} ${studentRepo}`);
-
-    //   log("Copied over entire unit..");
-    //   log("Removing Solved folders..");
-
-    //   execSync(`find ${studentRepo}/${unitName} -name 'Solved' -type d -prune -exec rm -rf '{}' +`);
-  
-    //   log("Removed Solved folders..");
-    //   log("Removing Main folders..");
-
-    //   execSync(`find ${studentRepo}/${unitName} -name 'Main' -type d -prune -exec rm -rf '{}' +`);
-
-    //   log("Removed Main folders..");
-    //   log("git adding all..");
-
-    //   execSync(`cd ${studentRepo} && git add -A`);
-
-    //   log("git commiting with message..");
-
-    //   execSync(`cd ${studentRepo} && git commit -m "adds unit ${unitName} sans Solved and Main directories"`);
-
-    //   log("git pushing")
-
-    //   execSync(`cd ${studentRepo} && git push ${remoteBranch}`);
-
-    //   log("Completed.")
-      
-    // } catch(err) {
-    //   if (err) {
-    //     console.error(`error: ${err.message}`);
-    //     return;
-    //   }
-    // }
 
   });
