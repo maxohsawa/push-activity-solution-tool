@@ -1,9 +1,9 @@
 #! /usr/bin/env node 
 import inquirer from 'inquirer';
 import { execSync } from 'child_process';
-import { readFile, readdir } from 'fs/promises';
+import { readFileSync, readdirSync } from 'fs';
 const { instructorRepo, studentRepo, remoteBranch } = JSON.parse(
-  await readFile(
+  readFileSync(
     new URL('../config.json', import.meta.url)
   )
 );
@@ -26,49 +26,106 @@ inquirer
 
     const prefix = unit < 10 ? `0${unit}` : `${unit}`;
 
-    const instructorDirs = await readdir(`${instructorRepo}/01-Class-Content`);
+    const instructorDirs = await readdirSync(`${instructorRepo}/01-Class-Content`);
 
     const unitName = instructorDirs.filter(dir => dir[0] === prefix[0] && dir[1] === prefix[1])[0];
 
-    inquirer
-      .prompt([
-        {
-          type: 'number',
-          name: 'activity',
-          message: 'Which activity would you like to update?'
-        }
-      ])
-      .then(async ({ activity }) => {
-        const prefix = activity < 10 ? `0${activity}` : `${activity}`;
+    const unitActivityDirs = await readdirSync(`${instructorRepo}/01-Class-Content/${unitName}/01-Activities`);
+    let filteredActivityDirs = unitActivityDirs.filter(dir => dir !== '.DS_Store');
+    filteredActivityDirs = filteredActivityDirs.filter(dir => parseInt(dir.slice(0,2)) % 2 === 0);
+    console.log(1, filteredActivityDirs);
+    filteredActivityDirs = filteredActivityDirs.filter(dir => {
+      // filter out folders that have a Solved folder
+      const subDirs = readdirSync(`${studentRepo}/${unitName}/01-Activities/${dir}`);
+      console.log(2, subDirs);
+      return (!subDirs.includes('Solved'));
+    });
+    console.log(3, filteredActivityDirs);
 
-        const activityDirs = await readdir(`${instructorRepo}/01-Class-Content/${unitName}/01-Activities/`);
+    const unitAlgorithmDirs = await readdirSync(`${instructorRepo}/01-Class-Content/${unitName}/03-Algorithms`);
+    let filteredAlgorithmDirs = unitActivityDirs.filter(dir => dir !== '.DS_Store');
+    filteredAlgorithmDirs = filteredAlgorithmDirs.filter(dir => parseInt(dir.slice(0,2)) % 2 === 0);
+    filteredAlgorithmDirs = await Promise.all(filteredAlgorithmDirs.filter(async dir => {
+      // filter out folders that have a Solved folder
+      const subDirs = await readdirSync(`${studentRepo}/${unitName}/01-Activities/${dir}`);
+      return (!(subDirs.includes('Solved') || subDirs.includes('Main')));
+    }));
+    
+    const choices = [
+      ...unitActivityDirs     
+        .filter(dir => dir !== '.DS_Store')
+        .filter(dir => parseInt(dir.slice(0,2)) % 2 === 0)
+        .filter(dir => {
+          // filter out folders that have a Solved folder
+          const subDirs = readdirSync(`${studentRepo}/${unitName}/01-Activities/${dir}`);
+          return (!(subDirs.includes('Solved') || subDirs.includes('Main')));
+        })
+        .map(dir => {
+          console.log(dir)
+          return (
+            {
+              name: `Activity ${dir}`,
+              value: `Activity ${dir}` 
+            }
+          )
+      }),
+      ...unitAlgorithmDirs
+        .filter(dir => dir !== '.DS_Store')
+        .filter(dir => parseInt(dir.slice(0,2)) % 2 === 0)
+        .filter(dir => {
+          // filter out folders that have a Solved folder
+          const subDirs = readdirSync(`${studentRepo}/${unitName}/03-Algorithms/${dir}`);
+          return (!subDirs.includes('Solved'));
+        })
+        .map(dir => {
+          return ({
+            name: `Algorithm ${dir}`,
+            value: `Algorithm ${dir}` 
+          })
+        })
+    ] 
 
-        const activityName = activityDirs.filter(dir => dir[0] === prefix[0] && dir[1] === prefix[1])[0];
+    console.log(choices);
+    // inquirer
+    //   .prompt([
+    //     {
+    //       type: 'checkbox',
+    //       name: 'solutions',
+    //       message: 'Which solutions would you like to provide?',
+    //       choices
+    //     }
+    //   ])
+    //   .then(async ({ solutions }) => {
 
-        try {
+    //     const activities = solutions.filter(sol => sol.split(' ')[0] === 'Activity').map(sol => sol.split(' ')[1]);
+    //     const algorithms = solutions.filter(sol => sol.split(' ')[0] === 'Algorithm').map(sol => sol.split(' ')[1]);
 
-          log(`Copying unit ${unitName} activity ${activityName} solution directory..`);
+    //     console.log(activities, algorithms);
 
-          execSync(`cp -r ${instructorRepo}/01-Class-Content/${unitName}/01-Activities/${activityName}/Solved ${studentRepo}/${unitName}/01-Activities/${activityName}`);
+        // try {
 
-          log(`${activityName} solution copied..`);
-          log("git adding all..");
+        //   log(`Copying unit ${unitName} activity ${activityName} solution directory..`);
 
-          execSync(`cd ${studentRepo} && git add -A`);
+        //   execSync(`cp -r ${instructorRepo}/01-Class-Content/${unitName}/01-Activities/${activityName}/Solved ${studentRepo}/${unitName}/01-Activities/${activityName}`);
 
-          log("git commiting with message..");
+        //   log(`${activityName} solution copied..`);
+        //   log("git adding all..");
 
-          execSync(`cd ${studentRepo} && git commit -m "adds solution for unit ${unitName} activity ${activityName}"`);
+        //   execSync(`cd ${studentRepo} && git add -A`);
 
-          log("git pushing")
+        //   log("git commiting with message..");
 
-          execSync(`cd ${studentRepo} && git push ${remoteBranch}`);
+        //   execSync(`cd ${studentRepo} && git commit -m "adds solution for unit ${unitName} activity ${activityName}"`);
 
-          log("Completed.");
+        //   log("git pushing")
 
-        } catch(err) {
-          console.error(err);
-        }
-      })
+        //   execSync(`cd ${studentRepo} && git push ${remoteBranch}`);
+
+        //   log("Completed.");
+
+        // } catch(err) {
+        //   console.error(err);
+        // }
+      // })
 
       });
