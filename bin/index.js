@@ -31,44 +31,44 @@ inquirer
     const unitName = instructorDirs.filter(dir => dir[0] === prefix[0] && dir[1] === prefix[1])[0];
 
     inquirer
-  .prompt([
-    {
-      type: 'number',
-      name: 'activity',
-      message: 'Which activity would you like to update?'
-    }
-  ])
-  .then(async ({ activity }) => {
-    const prefix = activity < 10 ? `0${activity}` : `${activity}`;
+      .prompt([
+        {
+          type: 'number',
+          name: 'activity',
+          message: 'Which activity would you like to update?'
+        }
+      ])
+      .then(async ({ activity }) => {
+        const prefix = activity < 10 ? `0${activity}` : `${activity}`;
 
-    const activityDirs = await readdir(`${instructorRepo}/01-Class-Content/${unitName}/01-Activities/`);
+        const activityDirs = await readdir(`${instructorRepo}/01-Class-Content/${unitName}/01-Activities/`);
 
-    const activityName = activityDirs.filter(dir => dir[0] === prefix[0] && dir[1] === prefix[1])[0];
+        const activityName = activityDirs.filter(dir => dir[0] === prefix[0] && dir[1] === prefix[1])[0];
 
-    try {
+        try {
 
-      log(`Copying unit ${unitName} activity ${activityName} solution directory..`);
+          log(`Copying unit ${unitName} activity ${activityName} solution directory..`);
 
-      execSync(`cp -r ${instructorRepo}/01-Class-Content/${unitName}/01-Activities/${activityName}/Solved ${studentRepo}/${unitName}/01-Activities/${activityName}`);
+          execSync(`cp -r ${instructorRepo}/01-Class-Content/${unitName}/01-Activities/${activityName}/Solved ${studentRepo}/${unitName}/01-Activities/${activityName}`);
 
-      log(`${activityName} solution copied..`);
-      log("git adding all..");
+          log(`${activityName} solution copied..`);
+          log("git adding all..");
 
-      execSync(`cd ${studentRepo} && git add -A`);
+          execSync(`cd ${studentRepo} && git add -A`);
 
-      log("git commiting with message..");
+          log("git commiting with message..");
 
-      execSync(`cd ${studentRepo} && git commit -m "adds solution for unit ${unitName} activity ${activityName}"`);
+          execSync(`cd ${studentRepo} && git commit -m "adds solution for unit ${unitName} activity ${activityName}"`);
 
-      log("git pushing")
+          log("git pushing")
 
-      execSync(`cd ${studentRepo} && git push ${remoteBranch}`);
+          execSync(`cd ${studentRepo} && git push ${remoteBranch}`);
 
-      log("Completed.");
+          log("Completed.");
 
-    } catch(err) {
-      console.error(err);
-    }
-  })
+        } catch(err) {
+          console.error(err);
+        }
+      })
 
-  });
+      });
