@@ -1,7 +1,7 @@
 #! /usr/bin/env node 
 import inquirer from 'inquirer';
 import { execSync } from 'child_process';
-import { readFileSync, readdirSync } from 'fs';
+import { readFileSync, readdirSync, existsSync } from 'fs';
 const { instructorRepo, studentRepo, remoteBranch } = JSON.parse(
   readFileSync(
     new URL('../config.json', import.meta.url)
@@ -26,13 +26,15 @@ inquirer
 
     const prefix = unit < 10 ? `0${unit}` : `${unit}`;
 
-    const instructorDirs = await readdirSync(`${instructorRepo}/01-Class-Content`);
+    const instructorDirs = readdirSync(`${instructorRepo}/01-Class-Content`);
 
     const unitName = instructorDirs.filter(dir => dir[0] === prefix[0] && dir[1] === prefix[1])[0];
 
-    const unitActivityDirs = await readdirSync(`${instructorRepo}/01-Class-Content/${unitName}/01-Activities`);
+    const unitActivityDirs = readdirSync(`${instructorRepo}/01-Class-Content/${unitName}/01-Activities`);
 
-    const unitAlgorithmDirs = await readdirSync(`${instructorRepo}/01-Class-Content/${unitName}/03-Algorithms`);
+    const algorithmsPath = `${instructorRepo}/01-Class-Content/${unitName}/03-Algorithms`;
+
+    const unitAlgorithmDirs = existsSync(algorithmsPath) ? readdirSync(algorithmsPath) : [];
     
     const choices = [
       ...unitActivityDirs     
@@ -49,7 +51,6 @@ inquirer
           return (!(subDirs.includes('Solved') || subDirs.includes('Main')));
         })
         .map(dir => {
-          console.log(dir)
           return (
             {
               name: `Activity ${dir}`,
@@ -72,7 +73,6 @@ inquirer
         })
     ] 
 
-    console.log(choices);
     inquirer
       .prompt([
         {
@@ -104,7 +104,7 @@ inquirer
 
           algorithms.forEach((algorithm) => {
   
-            execSync(`cp -r ${instructorRepo}/01-Class-Content/${unitName}/01-Activities/${algorithm}/Solved ${studentRepo}/${unitName}/01-Activities/${algorithm}`);
+            execSync(`cp -r ${instructorRepo}/01-Class-Content/${unitName}/03-Algorithms/${algorithm}/Solved ${studentRepo}/${unitName}/03-Algorithms/${algorithm}`);
   
             log(`${algorithm} solution copied..`);
           });
